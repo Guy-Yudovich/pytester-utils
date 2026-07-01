@@ -5,7 +5,7 @@ description = "Powerful and ergonomic wrapper for pytester for your mental healt
 readme = "README.md"
 requires-python = ">=3.12"
 
-dependencies = ["pytest~=9.1"]
+dependencies = ["pydantic~=2.13", "pytest~=9.1"]
 
 [dependency-groups]
 dev = [
@@ -40,7 +40,10 @@ cache-dir = "./.cache/ruff"
 line-length = 120
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = [
+"./tests/**/*.py" = [
+    "S101", # use of assert detected
+]
+"./src/pytester_utils/pytester_utils.py" = [
     "S101", # use of assert detected
 ]
 

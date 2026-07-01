@@ -21,3 +21,12 @@ class ArgumentWithDefaultValueError(InvalidFileFunctionError):
 class FixtureRequestNotAvailableError(ValueError):
     def __init__(self) -> None:
         super().__init__("Fixture request is not available at this stage.")
+
+
+class DuplicateSpecialFilesError(ValueError):
+    def __init__(self, names: list[str]) -> None:
+        self.names = names
+        super().__init__(
+            f"The files {names!r} must be defined up to once each but were "
+            "defined twice, once via their fields and once via extra_files.",
+        )
