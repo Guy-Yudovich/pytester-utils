@@ -16,3 +16,8 @@ class ArgumentWithDefaultValueError(InvalidFileFunctionError):
             f"The function has an argument '{argument}' with a default value, which is invalid "
             "for file functions. Try using the `FileFunction.build(...)` decorator instead.",
         )
+
+
+class FixtureRequestNotAvailableError(ValueError):
+    def __init__(self) -> None:
+        super().__init__("Fixture request is not available at this stage.")
