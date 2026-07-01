@@ -5,17 +5,19 @@ description = "Powerful and ergonomic wrapper for pytester for your mental healt
 readme = "README.md"
 requires-python = ">=3.12"
 
-dependencies = []
+dependencies = ["pytest~=9.1"]
 
 [dependency-groups]
 dev = [
     "absolufy-imports~=0.3.1",
     "pre-commit~=4.6",
-    "pytest~=9.1",
     "ruff~=0.15.20",
     "ty~=0.0.56",
     "uv~=0.11.26",
 ]
+
+[project.entry-points.pytest11]
+pytester_utils = "pytester_utils._plugin"
 
 [build-system]
 requires = ["hatchling"]
