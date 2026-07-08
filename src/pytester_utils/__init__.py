@@ -1,10 +1,10 @@
 from pytester_utils import errors
+from pytester_utils._plugin import PYTESTER_RUN_METHODS, PytesterRunMethod
 from pytester_utils.pytester_utils import (
     AnyFileFunction,
     FileFunction,
     OutputMatchPatterns,
     PytesterOutcomes,
-    PytesterRunMethod,
     PytesterTestCase,
     PytesterTestCaseResult,
     RawFileFunction,
@@ -16,6 +16,7 @@ from pytester_utils.pytester_utils import (
 )
 
 __all__ = [
+    "PYTESTER_RUN_METHODS",
     "AnyFileFunction",
     "FileFunction",
     "OutputMatchPatterns",

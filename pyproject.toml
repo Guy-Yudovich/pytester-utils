@@ -109,6 +109,7 @@ ignore = [
     "D107",    # Missing docstring in public init
     "D203",    # Incompatible with D211
     "D212",    # Incompatible with D213
+    "D413",    # Missing blank line at the end of a docstring,
     "FURB110", # Fix may modify behavior
     "RET504",  # Forbids assigning value to variable right before returning the variable, which is actually a common pattern in programming for ease of debugging.
     "TC001",   # Move first-party imports to type-checking block - python 3.15+ supports lazy imports, making this rule unnecessary

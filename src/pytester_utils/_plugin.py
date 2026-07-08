@@ -7,7 +7,9 @@ import pytest
 from pytester_utils.errors import FixtureRequestNotAvailableError
 
 type PytesterRunMethod = Literal["inprocess", "subprocess"]
-PYTESTER_RUN_METHODS: list[PytesterRunMethod] = list(get_args(PytesterRunMethod))
+"""Method for running pytester sessions, either in the same process as the test or in a separate subprocess."""
+
+PYTESTER_RUN_METHODS: set[PytesterRunMethod] = set(get_args(PytesterRunMethod))
 _DEFAULT_PYTESTER_RUN_METHOD: PytesterRunMethod = "subprocess"
 
 PYTESTER_RUN_METHOD_CLI_FLAG = "--pytester-run-method"
@@ -30,7 +32,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         type=str,
         default=None,
         action="store",
-        choices=PYTESTER_RUN_METHODS,
+        choices=list(PYTESTER_RUN_METHODS),
         required=False,
     )
 
@@ -50,7 +52,7 @@ def _parse_pytester_run_method_from_cli(config: pytest.Config) -> PytesterRunMet
 
     msg = (
         f"Invalid value for {PYTESTER_RUN_METHOD_CLI_FLAG!r}: {pytester_run_method_arg!r}. "
-        f"Valid choices are: {PYTESTER_RUN_METHODS!r}"
+        f"Valid choices are: {list(PYTESTER_RUN_METHODS)!r}"
     )
     raise pytest.UsageError(msg)
 

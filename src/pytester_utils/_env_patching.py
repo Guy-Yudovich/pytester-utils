@@ -110,5 +110,12 @@ def _run_env_patchers(
 
 @contextmanager
 def patch_env(env: Mapping[str, str], inherit: bool) -> Generator[None]:
+    """
+    Patch the current environment with the given environment.
+
+    Args:
+        env (Mapping[str, str]): Environment mapping, describing the new environment.
+        inherit (bool): Whether to inherit the current environment and apply the new env on top of it.
+    """
     with _run_env_patchers(env, inherit):
         yield
