@@ -77,7 +77,7 @@ def _patch_popen_env(env: Mapping[str, str], inherit: bool) -> Generator[None]:
         return proc
 
     if original_popen.__name__ == _patched_popen.__name__:
-        yield  # TODO: Properly support nested patching of Popen
+        yield  # TODO: #3 Properly support nested patching of Popen
     else:
         with unittest.mock.patch(
             original_popen.__module__ + "." + original_popen.__name__,
