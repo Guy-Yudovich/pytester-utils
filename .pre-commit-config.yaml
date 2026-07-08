@@ -1,0 +1,33 @@
+repos:
+  - repo: https://github.com/astral-sh/ty-pre-commit
+    rev: v0.0.57
+    hooks:
+      - id: ty
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.20
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.10.0
+    hooks:
+      - id: python-check-blanket-noqa
+      - id: python-check-blanket-type-ignore
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-toml
+      - id: check-yaml
+        args: [--unsafe]
+      - id: check-json
+      - id: check-xml
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: detect-aws-credentials
+        args: [--allow-missing-credentials]
