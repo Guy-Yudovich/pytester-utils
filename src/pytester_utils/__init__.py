@@ -11,6 +11,7 @@ from pytester_utils.pytester_utils import (
     TestFiles,
     get_default_env,
     get_default_pytest_args,
+    run_pytester,
     set_default_env,
     set_default_pytest_args,
 )
@@ -29,6 +30,7 @@ __all__ = [
     "errors",
     "get_default_env",
     "get_default_pytest_args",
+    "run_pytester",
     "set_default_env",
     "set_default_pytest_args",
 ]

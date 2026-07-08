@@ -7,7 +7,15 @@ from pathlib import Path
 from typing import Any, Literal, Protocol, Self, overload
 
 import pytest
-from pydantic import BaseModel, ConfigDict, Field, NonNegativeInt, computed_field, model_validator, validate_call
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    NonNegativeInt,
+    computed_field,
+    model_validator,
+    validate_call,
+)
 
 from pytester_utils._ast_utils import get_function_body_source_lines
 from pytester_utils._env_patching import patch_env
@@ -473,11 +481,6 @@ class PytesterTestCase(BaseModel):
     match_stderr_patterns: OutputMatchPatterns | None = None
     """Expected patterns used for matching against the nested pytest session's stderr."""
 
-    def run(self) -> PytesterTestCaseResult:
-        request = get_request()
-        result = _run_test_function(self, request)
-        return result
-
 
 class PytesterTestCaseResult(BaseModel):
     """Represents the result of running a `PytesterTestCase`."""
@@ -491,7 +494,8 @@ class PytesterTestCaseResult(BaseModel):
     """The result of running the test case."""
 
 
-def _run_test_function(test_case: PytesterTestCase, request: pytest.FixtureRequest) -> PytesterTestCaseResult:
+def run_pytester(test_case: PytesterTestCase) -> PytesterTestCaseResult:
+    request = get_request()
     pytester = request.getfixturevalue("pytester")
 
     pytest_args = [
@@ -503,7 +507,7 @@ def _run_test_function(test_case: PytesterTestCase, request: pytest.FixtureReque
         **test_case.env,
     }
 
-    run_result = run_pytester(
+    run_result = _run_pytester(
         config=request.config,
         pytester=pytester,
         pytester_run_method=test_case.pytester_run_method,
@@ -528,7 +532,7 @@ def _run_test_function(test_case: PytesterTestCase, request: pytest.FixtureReque
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def run_pytester(  # noqa: PLR0913 - too-many-arguments
+def _run_pytester(  # noqa: PLR0913 - too-many-arguments
     *,
     config: pytest.Config,
     pytester: pytest.Pytester,
