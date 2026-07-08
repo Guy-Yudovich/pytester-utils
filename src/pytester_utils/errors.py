@@ -4,12 +4,16 @@ from typing import Any
 
 
 class InvalidFileFunctionError(SyntaxError):
+    """Raised when a file function is invalid."""
+
     def __init__(self, reason: str, *args: Any) -> None:
         self.reason = reason
         super().__init__(f"Invalid file function: {reason}", *args)
 
 
 class ArgumentWithDefaultValueError(InvalidFileFunctionError):
+    """Raised when a file function has an argument with a default value, which is invalid for file functions."""
+
     def __init__(self, argument: str) -> None:
         self.argument = argument
         super().__init__(
@@ -19,11 +23,15 @@ class ArgumentWithDefaultValueError(InvalidFileFunctionError):
 
 
 class FixtureRequestNotAvailableError(ValueError):
+    """Raised when the fixture request is not available at a desired stage."""
+
     def __init__(self) -> None:
         super().__init__("Fixture request is not available at this stage.")
 
 
 class DuplicateSpecialFilesError(ValueError):
+    """Raised when special files are defined multiple times."""
+
     def __init__(self, names: list[str]) -> None:
         self.names = names
         super().__init__(

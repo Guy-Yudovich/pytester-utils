@@ -81,14 +81,24 @@ def _get_module_imports_from_function_def[**P, R](func: Callable[P, R]) -> list[
 
 def get_function_body_source_lines[**P, R](
     func: Callable[P, R],
-    variables: Mapping[str, Any] | None = None,
-    auto_inject_imports: bool = True,
+    variables: Mapping[str, Any],
+    auto_inject_imports: bool,
 ) -> str:
+    """
+    Get the source lines for a function body with optional injected imports and variables.
+
+    Args:
+        func (Callable[P, R]): Function to extract the source lines from.
+        variables (Mapping[str, Any]): Mapping of variables to inject to the top of the result.
+        auto_inject_imports (bool): Whether to automagically prepend the defining
+            module imports to the top of the result.
+
+    Returns:
+        str: Source lines of the given function, with the optional modifications.
+    """
     _verify_valid_function(func)
     function_signature = inspect.signature(func)
-    variables = {
-        variable: value for variable, value in (variables or {}).items() if variable in function_signature.parameters
-    }
+    variables = {variable: value for variable, value in variables.items() if variable in function_signature.parameters}
 
     function_def = _get_function_def(func)
 

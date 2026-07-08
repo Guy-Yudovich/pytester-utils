@@ -20,7 +20,10 @@ from pytester_utils._plugin import (
 from pytester_utils.errors import DuplicateSpecialFilesError
 
 type RawFileFunction = Callable[..., Any]
+"""Raw Python function that can be converted into a Python file."""
+
 type AnyFileFunction = FileFunction | RawFileFunction
+"""Any function that can be converted into a Python file."""
 
 
 class _DefaultParams(BaseModel):
@@ -32,18 +35,22 @@ _default_params = _DefaultParams()
 
 
 def get_default_pytest_args() -> list[str]:
+    """Get a copy of the default pytest arguments used for running nested pytest sessions."""
     return list(_default_params.pytest_args)
 
 
 def get_default_env() -> dict[str, str]:
+    """Get a copy of the default environment variables used for running nested pytest sessions."""
     return dict(_default_params.env_vars)
 
 
 def set_default_pytest_args(pytest_args: Sequence[str]) -> None:
+    """Set the default pytest arguments used for running nested pytest sessions."""
     _default_params.pytest_args = list(pytest_args)
 
 
 def set_default_env(env_vars: Mapping[str, str]) -> None:
+    """Set the default environment variables used for running nested pytest sessions."""
     _default_params.env_vars = dict(env_vars)
 
 
@@ -160,6 +167,8 @@ class _PytesterRunProtocol(Protocol):
 
 
 class PytesterOutcomes(BaseModel):
+    """Represents the expected outcomes of a pytest run."""
+
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     passed: NonNegativeInt | None = None
@@ -174,6 +183,8 @@ class PytesterOutcomes(BaseModel):
 
 
 class OutputMatchPatterns(BaseModel):
+    """Represents a list of patterns to match against the output of a pytest run, along with the matching method."""
+
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     match_patterns: list[Sequence[str | re.Pattern[str]] | str | re.Pattern[str]]
@@ -198,6 +209,14 @@ class OutputMatchPatterns(BaseModel):
         *match_patterns: Sequence[str | re.Pattern[str]] | str | re.Pattern[str],
         line_match_method: Literal["regex", "glob"] = "regex",
     ) -> None:
+        """
+        Patterns used for matching against stdout or stderr of the nested pytest session.
+
+        Patterns can be either all regex or all glob patterns.
+
+        Instead of a single pattern, it is possible to pass a sequence
+        of patterns to be matched for consecutive matching.
+        """
         super().__init__(
             match_patterns=match_patterns,
             line_match_method=line_match_method,
@@ -205,6 +224,12 @@ class OutputMatchPatterns(BaseModel):
 
 
 class _FileFunctionMetadata(BaseModel):
+    """
+    Builder class for the class `FileFunction`.
+
+    Finalize building by decorating a file function with an instance of this class.
+    """
+
     model_config = ConfigDict(extra="forbid")
 
     injected_variables: dict[str, Any] = Field(default_factory=dict)
@@ -224,12 +249,25 @@ class _FileFunctionMetadata(BaseModel):
     def inject(self, variables_dict: dict[str, Any], /) -> Self: ...
 
     def inject(self, variables_dict: dict[str, Any] | None = None, /, **variables_kwargs: Any) -> Self:
+        """
+        Inject variables into the file function.
+
+        When generating a file based on a file function, a variable is injected only
+        if there is an argument in the file function's signature with the same name.
+        """
         self.injected_variables.update(variables_dict or {})
         self.injected_variables.update(variables_kwargs)
         return self
 
 
 class FileFunction(_FileFunctionMetadata):
+    """
+    Container for attaching metadata to a function that can be converted into a Python file.
+
+    Can be initialized either via the `__init__`, or via the `FileFunction.build()` method.
+    For simplicity, it is advised to use the builder, as it can be used as a decorator.
+    """
+
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     func: RawFileFunction
@@ -238,15 +276,27 @@ class FileFunction(_FileFunctionMetadata):
 
     @classmethod
     def build(cls) -> _FileFunctionMetadata:
+        """
+        Initialize a builder for the class `FileFunction`.
+
+        Finalize building by decorating a file function with an instance of the returned builder.
+        """
         return _FileFunctionMetadata()
 
 
 class TestFiles(BaseModel):
+    """Represents a collection of test files, extra files, and special files to be used in a pytester session."""
+
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     conftest: AnyFileFunction | None = None
+    """Optional `conftest.py` file to add alongside the test files."""
+
     test_files: Sequence[AnyFileFunction]
+    """Files containing test cases, to be run inside pytest session(s)."""
+
     extra_files: Mapping[str, AnyFileFunction] = Field(default_factory=dict)
+    """Files without any test cases, useful for utilities."""
 
     # Pytest tried to collect the class as a test class when imported
     # by a test module. This variable tells pytest it doesn't contain
@@ -299,6 +349,15 @@ class TestFiles(BaseModel):
         pytester: pytest.Pytester,
         tests_dir_name: str | None = None,
     ) -> list[str] | Path:
+        """
+        Register the files into the pytester session using `pytester.makepyfile(...)`.
+
+        Return the list of paths of the test files, which should be passed to pytester's run method.
+        When `tests_dir_name` is provided, return its created path instead.
+
+        Optionally specify a directory name to create for containing
+        the test files (excluding special files and extra files).
+        """
         tests_dir_name = tests_dir_name.strip() if tests_dir_name is not None else ""
         test_file_name_prefix = ""
         tests_dir_path: Path | None = None
@@ -340,19 +399,79 @@ class TestFiles(BaseModel):
 
 
 class PytesterTestCase(BaseModel):
+    """Represents a test case to be run in a pytester session."""
+
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     test_files: TestFiles
+    """Files to be created in the pytester sessions."""
+
     pytest_args: list[str] = Field(default_factory=list)
+    """Command line arguments to pass to the nested pytest session."""
+
     include_default_pytest_args: bool = True
+    """
+    Whether to pass the default command line arguments to the nested pytest session.
+
+    Can be combined with `pytest_args` to pass additional arguments.
+
+    The default pytest arguments can be modified via `set_default_pytest_args(...)` and `get_default_pytest_args(...)`.
+    """
+
     env: dict[str, str] = Field(default_factory=dict)
+    """
+    Environment variables to pass to the nested pytest session, optionally overriding the default environment variables.
+
+    Explicitly set environment variables take priority over default
+    environment variables. Both default and explicit environment
+    variables take priority over inherited environment variables.
+    """
+
     include_default_env: bool = True
+    """
+    Whether to pass the default environment variables to the nested pytest session.
+
+    Can be combined with `env` to pass additional environment variables.
+
+    The default environment variables can be modified via `set_default_env(...)` and `get_default_env(...)`.
+
+    Explicitly set environment variables take priority over default
+    environment variables. Both default and explicit environment
+    variables take priority over inherited environment variables.
+    """
+
     inherit_env: bool = True
+    """
+    Whether to pass the environment variables of the invoking process to the nested pytest session.
+
+    Can be combined with `env` to pass additional arguments
+
+    Explicitly set environment variables take priority over default
+    environment variables. Both default and explicit environment
+    variables take priority over inherited environment variables.
+    """
+
     pytester_run_method: PytesterRunMethod | None = None
+    """
+    Desired method for running pytester.
+
+    Default value for the argument `pytester_run_method` can be set via the
+    cli flag `--pytester-run-method`. When not defined, an environment variable
+    `PYTESTER_RUN_METHOD` can be used to set the default value. When neither is
+    defined, the default value is `subprocess`.
+    """
+
     assert_exit_code: pytest.ExitCode | None = pytest.ExitCode.OK
+    """Expected exit code used for asserting against the exit code of the nested pytest session's exit code."""
+
     assert_outcomes: PytesterOutcomes | None = None
+    """Expected outcomes used for asserting against the nested pytest session's outcomes."""
+
     match_stdout_patterns: OutputMatchPatterns | None = None
+    """Expected patterns used for matching against the nested pytest session's stdout."""
+
     match_stderr_patterns: OutputMatchPatterns | None = None
+    """Expected patterns used for matching against the nested pytest session's stderr."""
 
     def run(self) -> PytesterTestCaseResult:
         request = get_request()
@@ -361,10 +480,15 @@ class PytesterTestCase(BaseModel):
 
 
 class PytesterTestCaseResult(BaseModel):
+    """Represents the result of running a `PytesterTestCase`."""
+
     model_config = ConfigDict(extra="forbid", frozen=True, arbitrary_types_allowed=True)
 
     test_case: PytesterTestCase
+    """The test case that was run."""
+
     run_result: pytest.RunResult
+    """The result of running the test case."""
 
 
 def _run_test_function(test_case: PytesterTestCase, request: pytest.FixtureRequest) -> PytesterTestCaseResult:
@@ -414,6 +538,28 @@ def run_pytester(  # noqa: PLR0913 - too-many-arguments
     env: Mapping[str, str] | None = None,
     inherit_env: bool = True,
 ) -> pytest.RunResult:
+    """
+    Run pytester with the given files and args.
+
+    Default value for the argument `pytester_run_method` can be set via the
+    cli flag `--pytester-run-method`. When not defined, an environment variable
+    `PYTESTER_RUN_METHOD` can be used to set the default value. When neither is
+    defined, the default value is `subprocess`.
+
+    Args:
+        config (pytest.Config): Config object from the pytest session.
+        pytester (pytest.Pytester): Fixture for running pytester, obtained from the pytest session.
+        test_files (TestFiles): Files to be created in the pytester sessions.
+        pytester_run_method (PytesterRunMethod | None, optional): Desired method for running pytester.
+        pytest_args (Sequence[str] | None, optional): Command line arguments to pass to the nested pytest session.
+        env (Mapping[str, str] | None, optional): Environment variables to pass to the nested pytest
+            session, optionally overriding the default environment variables.
+        inherit_env (bool, optional): Whether to pass the environment variables of the invoking
+            process to the nested pytest session.
+
+    Returns:
+        pytest.RunResult: The result of running the nested pytest session.
+    """
     pytest_args = list(pytest_args or [])
     env = dict(env or {})
 
