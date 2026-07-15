@@ -3,10 +3,15 @@ from __future__ import annotations
 import ast
 import inspect
 import textwrap
+import warnings
 from collections.abc import Callable, Mapping
 from typing import Any, cast
 
-from pytester_utils.errors import ArgumentWithDefaultValueError
+from pytester_utils.errors import (
+    ArgumentWithDefaultValueError,
+    MissingInjectionVariablesError,
+    UnusedInjectedVariablesWarning,
+)
 
 
 def _build_assign_statements(variables: Mapping[str, Any]) -> list[ast.Assign]:
@@ -56,11 +61,18 @@ def _get_function_def[**P, R](func: Callable[P, R]) -> ast.FunctionDef:
     return function_def
 
 
-def _verify_valid_function[**P, R](func: Callable[P, R]) -> None:
-    function_signature = inspect.signature(func)
+def _verify_valid_function(function_signature: inspect.Signature, variables: Mapping[str, Any]) -> None:
     for param in function_signature.parameters.values():
         if param.default is not inspect.Parameter.empty:
             raise ArgumentWithDefaultValueError(str(param))
+
+    unused_variables = [variable for variable in variables if variable not in function_signature.parameters]
+    if len(unused_variables) > 0:
+        warnings.warn(UnusedInjectedVariablesWarning(unused_variables), stacklevel=2)
+
+    missing_variables = [variable for variable in function_signature.parameters if variable not in variables]
+    if len(missing_variables) > 0:
+        raise MissingInjectionVariablesError(missing_variables)
 
 
 def _get_module_imports_from_function_def[**P, R](func: Callable[P, R]) -> list[str]:
@@ -93,8 +105,8 @@ def get_function_body_source_lines[**P, R](
     Returns:
         str: Source lines of the given function, with the optional modifications.
     """
-    _verify_valid_function(func)
     function_signature = inspect.signature(func)
+    _verify_valid_function(function_signature, variables)
     variables = {variable: value for variable, value in variables.items() if variable in function_signature.parameters}
 
     function_def = _get_function_def(func)
