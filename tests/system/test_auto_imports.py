@@ -1,7 +1,7 @@
 from unittest import mock  # IMPORTANT!
 
 from pytester_utils import FileFunction, PytesterOutcomes, PytesterTestCase, TestFiles, run_pytester
-from tests.utils import file_outer_conftest
+from tests.system.utils import file_outer_conftest
 
 
 def file_pytester() -> None:
