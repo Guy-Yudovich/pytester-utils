@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from pytester_utils import OutputMatchPatterns, PytesterOutcomes, PytesterTestCase, TestFiles, run_pytester
+from pytester_utils import OutputMatchPattern, PytesterOutcomes, PytesterTestCase, TestFiles, run_pytester
 from tests.system.utils import file_outer_conftest
 
 
@@ -31,6 +31,6 @@ def test_duplicate_special_files() -> None:
             test_files=TestFiles(conftest=file_outer_conftest, test_files=[file_test_duplicate_special_files]),
             assert_exit_code=pytest.ExitCode.TESTS_FAILED,
             assert_outcomes=PytesterOutcomes(failed=1),
-            match_stdout_patterns=OutputMatchPatterns(f"*{ValidationError.__qualname__}*", line_match_method="glob"),
+            match_stdout_patterns=OutputMatchPattern(f"*{ValidationError.__qualname__}*", line_match_method="glob"),
         ),
     )

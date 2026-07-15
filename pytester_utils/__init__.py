@@ -3,7 +3,7 @@ from pytester_utils._plugin import PYTESTER_RUN_METHODS, PytesterRunMethod
 from pytester_utils.pytester_utils import (
     AnyFileFunction,
     FileFunction,
-    OutputMatchPatterns,
+    OutputMatchPattern,
     PytesterOutcomes,
     PytesterTestCase,
     RawFileFunction,
@@ -19,7 +19,7 @@ __all__ = [
     "PYTESTER_RUN_METHODS",
     "AnyFileFunction",
     "FileFunction",
-    "OutputMatchPatterns",
+    "OutputMatchPattern",
     "PytesterOutcomes",
     "PytesterRunMethod",
     "PytesterTestCase",

@@ -103,17 +103,19 @@ def _assert_pytester_outcomes(
 
 def _assert_pytester_output(
     line_matcher: pytest.LineMatcher,
-    match_patterns: OutputMatchPatterns | None,
+    match_patterns: list[OutputMatchPattern],
 ) -> None:
-    if match_patterns is None:
+    if len(match_patterns) == 0:
         return
 
-    if match_patterns.line_match_method == "regex":
-        match_lines = line_matcher.re_match_lines
-    elif match_patterns.line_match_method == "glob":
-        match_lines = line_matcher.fnmatch_lines
+    for match_pattern in match_patterns:
+        pattern_sequence = match_pattern.match_pattern
 
-    for pattern_sequence in match_patterns.match_patterns:
+        if match_pattern.line_match_method == "regex":
+            match_lines = line_matcher.re_match_lines
+        elif match_pattern.line_match_method == "glob":
+            match_lines = line_matcher.fnmatch_lines
+
         if isinstance(pattern_sequence, Sequence) and not isinstance(pattern_sequence, str):
             consecutive = True
             actual_pattern_sequence = pattern_sequence
@@ -128,8 +130,8 @@ def _assert_pytester_result(
     result: pytest.RunResult,
     assert_exit_code: pytest.ExitCode | None,
     assert_outcomes: PytesterOutcomes | None,
-    match_stdout_patterns: OutputMatchPatterns | None,
-    match_stderr_patterns: OutputMatchPatterns | None,
+    match_stdout_patterns: list[OutputMatchPattern],
+    match_stderr_patterns: list[OutputMatchPattern],
 ) -> None:
     try:
         _assert_pytester_exit_code(result, assert_exit_code)
@@ -190,43 +192,43 @@ class PytesterOutcomes(BaseModel):
     custom_outcomes: dict[str, NonNegativeInt] = Field(default_factory=dict)
 
 
-class OutputMatchPatterns(BaseModel):
-    """Represents a list of patterns to match against the output of a pytest run, along with the matching method."""
+class OutputMatchPattern(BaseModel):
+    """Represents a pattern to match against the output of a pytest run, along with the matching method."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    match_patterns: list[Sequence[str | re.Pattern[str]] | str | re.Pattern[str]]
+    match_pattern: Sequence[str | re.Pattern[str]] | str | re.Pattern[str]
     line_match_method: Literal["regex", "glob"]
 
     @overload
     def __init__(
         self,
-        *match_patterns: Sequence[str | re.Pattern[str]] | str | re.Pattern[str],
+        match_pattern: Sequence[str | re.Pattern[str]] | str | re.Pattern[str],
         line_match_method: Literal["regex"] = "regex",
     ) -> None: ...
 
     @overload
     def __init__(
         self,
-        *match_patterns: Sequence[str] | str,
+        match_pattern: Sequence[str] | str,
         line_match_method: Literal["glob"],
     ) -> None: ...
 
     def __init__(
         self,
-        *match_patterns: Sequence[str | re.Pattern[str]] | str | re.Pattern[str],
+        match_pattern: Sequence[str | re.Pattern[str]] | str | re.Pattern[str],
         line_match_method: Literal["regex", "glob"] = "regex",
     ) -> None:
         """
-        Patterns used for matching against stdout or stderr of the nested pytest session.
+        Pattern used for matching against stdout or stderr of the nested pytest session.
 
-        Patterns can be either all regex or all glob patterns.
+        Pattern can be either regex or glob pattern.
 
         Instead of a single pattern, it is possible to pass a sequence
         of patterns to be matched for consecutive matching.
         """
         super().__init__(
-            match_patterns=match_patterns,
+            match_pattern=match_pattern,
             line_match_method=line_match_method,
         )
 
@@ -475,10 +477,10 @@ class PytesterTestCase(BaseModel):
     assert_outcomes: PytesterOutcomes | None = None
     """Expected outcomes used for asserting against the nested pytest session's outcomes."""
 
-    match_stdout_patterns: OutputMatchPatterns | None = None
+    match_stdout_patterns: list[OutputMatchPattern] | OutputMatchPattern = Field(default_factory=list)
     """Expected patterns used for matching against the nested pytest session's stdout."""
 
-    match_stderr_patterns: OutputMatchPatterns | None = None
+    match_stderr_patterns: list[OutputMatchPattern] | OutputMatchPattern = Field(default_factory=list)
     """Expected patterns used for matching against the nested pytest session's stderr."""
 
 
@@ -509,8 +511,12 @@ def run_pytester(test_case: PytesterTestCase) -> pytest.RunResult:
         result=run_result,
         assert_exit_code=test_case.assert_exit_code,
         assert_outcomes=test_case.assert_outcomes,
-        match_stdout_patterns=test_case.match_stdout_patterns,
-        match_stderr_patterns=test_case.match_stderr_patterns,
+        match_stdout_patterns=test_case.match_stdout_patterns
+        if isinstance(test_case.match_stdout_patterns, list)
+        else [test_case.match_stdout_patterns],
+        match_stderr_patterns=test_case.match_stderr_patterns
+        if isinstance(test_case.match_stderr_patterns, list)
+        else [test_case.match_stderr_patterns],
     )
 
     return run_result
