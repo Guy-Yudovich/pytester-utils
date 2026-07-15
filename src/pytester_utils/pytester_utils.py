@@ -482,19 +482,7 @@ class PytesterTestCase(BaseModel):
     """Expected patterns used for matching against the nested pytest session's stderr."""
 
 
-class PytesterTestCaseResult(BaseModel):
-    """Represents the result of running a `PytesterTestCase`."""
-
-    model_config = ConfigDict(extra="forbid", frozen=True, arbitrary_types_allowed=True)
-
-    test_case: PytesterTestCase
-    """The test case that was run."""
-
-    run_result: pytest.RunResult
-    """The result of running the test case."""
-
-
-def run_pytester(test_case: PytesterTestCase) -> PytesterTestCaseResult:
+def run_pytester(test_case: PytesterTestCase) -> pytest.RunResult:
     request = get_request()
     pytester = request.getfixturevalue("pytester")
 
@@ -525,10 +513,7 @@ def run_pytester(test_case: PytesterTestCase) -> PytesterTestCaseResult:
         match_stderr_patterns=test_case.match_stderr_patterns,
     )
 
-    return PytesterTestCaseResult(
-        test_case=test_case,
-        run_result=run_result,
-    )
+    return run_result
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))

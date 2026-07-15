@@ -5,7 +5,10 @@ description = "Powerful and ergonomic wrapper for pytester for your mental healt
 readme = "README.md"
 requires-python = ">=3.12"
 
-dependencies = ["pydantic~=2.13", "pytest~=9.1"]
+dependencies = [
+    "pydantic~=2.13",
+    "pytest~=9.1",
+]
 
 [dependency-groups]
 dev = [
@@ -53,53 +56,7 @@ line-length = 120
 allow-star-arg-any = true # Allow `*args: Any` and `**kwargs: Any`.
 
 [tool.ruff.lint]
-select = [
-    "A",     # Protects the Builtin Module
-    "ANN",   # Enforce Annotations Usage
-    "ARG",   # Unused Function Arguments
-    "ASYNC", # Async
-    "B",     # Bug Prevention
-    "COM",   # Comma Related Merge Conflict Prevention
-    "C4",    # Comprehensions
-    "C90",   # Complexity
-    "D",     # Docstring Conventions
-    "E",     # Code Style (Errors)
-    "EM",    # Error Messages
-    "ERA",   # Commented-Out Code
-    "F",     # Pyflakes
-    "FA",    # Future Annotations (i.e. `from __future__ import annotations`)
-    "FURB",  # Miscellaneous (mostly related to code conciseness)
-    "I",     # Import Order
-    "ICN",   # Implicit Conventions (e.g. `import pandas as pd` instead of `import pandas`)
-    "INP",   # Enforce __init__.py Presence in Packages
-    "ISC",   # Implicit String Concatenation
-    "LOG",   # Logging
-    "G",     # Logging Format (specifically for the `logging` module)
-    "N",     # Naming Conventions
-    "PD",    # Pandas
-    "PGH",   # Ignore Specific Rules Instead of Entire Linter (i.e. use specific rule codes in `# noqa` or `# type: ignore`)
-    "PIE",   # Miscellaneous (mostly related to code redundancy)
-    "PL",    # Pylint
-    "PT",    # Pytest
-    "PTH",   # Prefer Pathlib Over OS Module
-    "PYI",   # .pyi Stub Files
-    "Q",     # Quotes
-    "RET",   # Return Statement
-    "RSE",   # Exception Raising
-    "RUF",   # Ruff-Specific Rules
-    "S",     # Security
-    "SIM",   # Code Simplicity and Readability
-    "SLF",   # Forbids Private Member Access
-    "SLOT",  # Requires `__slots__` For Inheritance From Certain Classes
-    "TC",    # Type Checking
-    "TD",    # To-Do Comments
-    "TID",   # Tidy Imports
-    "T10",   # Forbid Debug-only Code (e.g. `breakpoint()`)
-    "T20",   # Prefer Logging Over Print Statements
-    "TRY",   # Exception Handling
-    "UP",    # Upgrade Checks and Deprecation Warnings
-    "W",     # Code Style (Warnings)
-]
+select = ["ALL"]
 ignore = [
     "D100",    # Missing docstring in public module
     "D101",    # Missing docstring in public class
@@ -118,4 +75,7 @@ ignore = [
     "TC002",   # Move third-party imports to type-checking block - python 3.15+ supports lazy imports, making this rule unnecessary
     "TC003",   # Move standard library imports to type-checking block - python 3.15+ supports lazy imports, making this rule unnecessary
     "TD002",   # Missing todo author
+    "PLC0415", # Import outside top level
+    "FBT001", # Boolean-typed position argument in function definition
+    "FBT002"
 ]
