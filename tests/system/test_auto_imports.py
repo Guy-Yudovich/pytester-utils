@@ -5,7 +5,13 @@ from tests.system.utils import file_outer_conftest
 
 
 def file_test_auto_imports() -> None:
-    from pytester_utils import FileFunction, PytesterOutcomes, PytesterTestCase, TestFiles, run_pytester
+    from pytester_utils import (  # noqa: PLC0415
+        FileFunction,
+        PytesterOutcomes,
+        PytesterTestCase,
+        TestFiles,
+        run_pytester,
+    )
 
     try:
         _ = mock.Mock()  # ty:ignore[unresolved-reference] # noqa: F823 - undefined-local
@@ -15,7 +21,7 @@ def file_test_auto_imports() -> None:
         msg = "Expected NameError to be raised!"
         raise RuntimeError(msg)
 
-    from unittest import mock
+    from unittest import mock  # noqa: PLC0415
 
     def file_test_1() -> None:
         def test_1() -> None:
@@ -23,7 +29,7 @@ def file_test_auto_imports() -> None:
 
     def file_test_2() -> None:
         def test_2() -> None:
-            import pytest
+            import pytest  # noqa: PLC0415
 
             with pytest.raises(NameError):
                 _ = mock.Mock()
