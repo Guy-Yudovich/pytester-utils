@@ -4,11 +4,11 @@ from pytester_utils import FileFunction, PytesterOutcomes, PytesterTestCase, Tes
 from tests.system.utils import file_outer_conftest
 
 
-def file_pytester() -> None:
+def file_test_auto_imports() -> None:
     from pytester_utils import FileFunction, PytesterOutcomes, PytesterTestCase, TestFiles, run_pytester
 
     try:
-        _ = mock.Mock()  # noqa: F823  # ty:ignore[unresolved-reference]
+        _ = mock.Mock()  # ty:ignore[unresolved-reference] # noqa: F823 - undefined-local
     except NameError:
         pass
     else:
@@ -50,7 +50,7 @@ def test_auto_imports() -> None:
         PytesterTestCase(
             test_files=TestFiles(
                 conftest=file_outer_conftest,
-                test_files=[FileFunction(func=file_pytester, auto_inject_imports=False)],
+                test_files=[FileFunction(func=file_test_auto_imports, auto_inject_imports=False)],
             ),
             assert_outcomes=PytesterOutcomes(passed=2),
         ),
