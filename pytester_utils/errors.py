@@ -38,3 +38,19 @@ class DuplicateSpecialFilesError(ValueError):
             f"The files {names!r} must be defined up to once each but were "
             "defined twice, once via their fields and once via extra_files.",
         )
+
+
+class UnusedInjectedVariablesWarning(UserWarning):
+    """Raised when extra variables are provided for function body injection."""
+
+    def __init__(self, unused_variables: list[str]) -> None:
+        self.unused_variables = unused_variables
+        super().__init__(f"Unused variables were injected: {unused_variables!r}")
+
+
+class MissingInjectionVariablesError(ValueError):
+    """Raised when required function parameters were not provided in injected variables."""
+
+    def __init__(self, missing_variables: list[str]) -> None:
+        self.missing_variables = missing_variables
+        super().__init__(f"Missing injection variables: {missing_variables!r}.")
