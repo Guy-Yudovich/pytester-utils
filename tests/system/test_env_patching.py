@@ -54,11 +54,13 @@ def _assert_env(
     "method",
     [
         pytest.param(
-            EnvPatchMethod(name="current", patch_env=_patch_current_env, get_envs=(_get_current_env,)), id="current",
+            EnvPatchMethod(name="current", patch_env=_patch_current_env, get_envs=(_get_current_env,)),
+            id="current",
         ),
         pytest.param(EnvPatchMethod(name="popen", patch_env=_patch_popen_env, get_envs=(_get_popen_env,)), id="popen"),
         pytest.param(
-            EnvPatchMethod(name="full", patch_env=patch_env, get_envs=(_get_current_env, _get_popen_env)), id="full",
+            EnvPatchMethod(name="full", patch_env=patch_env, get_envs=(_get_current_env, _get_popen_env)),
+            id="full",
         ),
     ],
 )

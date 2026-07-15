@@ -21,7 +21,8 @@ def file_pytester() -> None:
         "case",
         [
             PytesterTestCase(
-                test_files=TestFiles(test_files=[file_test_1]), assert_outcomes=PytesterOutcomes(passed=1)
+                test_files=TestFiles(test_files=[file_test_1]),
+                assert_outcomes=PytesterOutcomes(passed=1),
             ),
         ],
     )
@@ -34,5 +35,5 @@ def test_sanity() -> None:
         PytesterTestCase(
             test_files=TestFiles(conftest=file_outer_conftest, test_files=[file_pytester]),
             assert_outcomes=PytesterOutcomes(passed=2),
-        )
+        ),
     )

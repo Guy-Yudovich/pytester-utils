@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        path: [src, tests]
+        path: [pytester_utils, tests]
     steps:
       - uses: actions/checkout@v4
 

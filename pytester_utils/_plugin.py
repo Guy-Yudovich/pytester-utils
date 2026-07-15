@@ -9,7 +9,7 @@ from pytester_utils.errors import FixtureRequestNotAvailableError
 type PytesterRunMethod = Literal["inprocess", "subprocess"]
 """Method for running pytester sessions, either in the same process as the test or in a separate subprocess."""
 
-PYTESTER_RUN_METHODS: set[PytesterRunMethod] = set(get_args(PytesterRunMethod))
+PYTESTER_RUN_METHODS: set[PytesterRunMethod] = set(get_args(PytesterRunMethod.__value__))
 _DEFAULT_PYTESTER_RUN_METHOD: PytesterRunMethod = "subprocess"
 
 PYTESTER_RUN_METHOD_CLI_FLAG = "--pytester-run-method"

@@ -12,7 +12,8 @@ def file_pytester() -> None:
     except NameError:
         pass
     else:
-        raise RuntimeError("Expected NameError to be raised!")
+        msg = "Expected NameError to be raised!"
+        raise RuntimeError(msg)
 
     from unittest import mock
 

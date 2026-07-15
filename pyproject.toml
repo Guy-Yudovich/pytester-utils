@@ -38,7 +38,7 @@ cache-dir = "./.cache/uv"
 
 [tool.pytest.ini_options]
 cache_dir = "./.cache/pytest"
-addopts = "--cov=src --cov-report=term --cov-report=xml --cov-branch"
+addopts = "--cov=pytester_utils --cov-report=term --cov-report=xml --cov-branch"
 
 [tool.ruff]
 cache-dir = "./.cache/ruff"
@@ -75,6 +75,7 @@ ignore = [
     "TC002",   # Move third-party imports to type-checking block - python 3.15+ supports lazy imports, making this rule unnecessary
     "TC003",   # Move standard library imports to type-checking block - python 3.15+ supports lazy imports, making this rule unnecessary
     "TD002",   # Missing todo author
+    "FIX002",  # Line contains TODO, consider resolving the issue
     "PLC0415", # Import outside top level
     "FBT001", # Boolean-typed position argument in function definition
     "FBT002"
