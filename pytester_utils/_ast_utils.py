@@ -71,10 +71,7 @@ def _get_module_imports_from_function_def[**P, R](func: Callable[P, R]) -> list[
         raise RuntimeError(msg)
     tree = ast.parse(inspect.getsource(module))
 
-    imports: list[str] = []
-    for node in tree.body:
-        if isinstance(node, (ast.Import, ast.ImportFrom)):
-            imports.append(ast.unparse(node))
+    imports: list[str] = [ast.unparse(node) for node in tree.body if isinstance(node, (ast.Import, ast.ImportFrom))]
 
     return imports
 
