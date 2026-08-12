@@ -18,7 +18,7 @@ class ArgumentWithDefaultValueError(InvalidFileFunctionError):
         self.argument = argument
         super().__init__(
             f"The function has an argument '{argument}' with a default value, which is invalid "
-            "for file functions. Try using the `FileFunction.build(...)` decorator instead.",
+            "for file functions. Try using `TestFile.build()` instead.",
         )
 
 

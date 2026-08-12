@@ -32,9 +32,9 @@ class TestFile(ABC):
     @abstractmethod
     def source_lines(self) -> str:
         """
-        Get the source lines (or variants thereof) of the test file.
+        Get the source lines of the test file.
 
-        Multi-line strings are returned as a single string with newline characters.
+        Multi-line source is returned as a single string with newline characters.
         """
 
     @classmethod
@@ -48,7 +48,7 @@ class TestFile(ABC):
         Convert any object that can be converted into a Python file into a `TestFile`.
 
         If the object is already a `TestFile`, it is returned as-is.
-        If the object is a raw Python function, it is wrapped in a `FileFunction` with default metadata.
+        If the object is a raw Python function, it is wrapped in a `FunctionTestFile` with default metadata.
         """
         if isinstance(obj, TestFile):
             return obj
@@ -88,7 +88,7 @@ class FunctionTestFile(TestFile):
     """
     Container for attaching metadata to a function that can be converted into a Python file.
 
-    For simplicity, it is advised to use the builder, as it can be used as a decorator.
+    For simplicity, it is advised to use `TestFile.build().finalize_from_raw()` as a decorator instead.
     """
 
     def __init__(self, func: RawFileFunction, metadata: TestFileMetadata | None = None) -> None:
