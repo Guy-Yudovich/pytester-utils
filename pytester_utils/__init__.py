@@ -1,12 +1,9 @@
 from pytester_utils import errors
 from pytester_utils._plugin import PYTESTER_RUN_METHODS, PytesterRunMethod
 from pytester_utils.pytester_utils import (
-    AnyFileFunction,
-    FileFunction,
     OutputMatchPattern,
     PytesterOutcomes,
     PytesterTestCase,
-    RawFileFunction,
     TestFiles,
     get_default_env,
     get_default_pytest_args,
@@ -14,16 +11,27 @@ from pytester_utils.pytester_utils import (
     set_default_env,
     set_default_pytest_args,
 )
+from pytester_utils.test_file import (
+    AnyTestFile,
+    FunctionTestFile,
+    RawFileFunction,
+    TestFile,
+    TestFileBuilder,
+    TestFileMetadata,
+)
 
 __all__ = [
     "PYTESTER_RUN_METHODS",
-    "AnyFileFunction",
-    "FileFunction",
+    "AnyTestFile",
+    "FunctionTestFile",
     "OutputMatchPattern",
     "PytesterOutcomes",
     "PytesterRunMethod",
     "PytesterTestCase",
     "RawFileFunction",
+    "TestFile",
+    "TestFileBuilder",
+    "TestFileMetadata",
     "TestFiles",
     "errors",
     "get_default_env",

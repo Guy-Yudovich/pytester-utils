@@ -3,7 +3,7 @@ from typing import cast
 
 import pytest
 
-from pytester_utils import FileFunction, PytesterTestCase, TestFiles, run_pytester
+from pytester_utils import PytesterTestCase, TestFile, TestFiles, run_pytester
 from tests.system.utils import file_outer_conftest
 
 
@@ -16,22 +16,26 @@ def file_test_parametrized_variable_injection() -> None:
         os.environ[test_value_key] = test_value
         return test_value
 
-    @FileFunction.build().inject(
-        test_value_key=test_value_key,
+    @(
+        TestFile.build()
+        .inject(
+            test_value_key=test_value_key,
+        )
+        .finalize_from_raw()
     )
     def _file_test_1(
         test_value_key: str,
-        test_value: int,
+        test_value: str,
     ) -> None:
         def test_sanity() -> None:
             assert test_value == os.environ.get(test_value_key)
 
     @pytest.fixture
-    def file_test_1(test_value: str) -> FileFunction:
+    def file_test_1(test_value: str) -> TestFile:
         _file_test_1.inject({test_value_key: test_value})
         return _file_test_1
 
-    def test_sanity(file_test_1: FileFunction) -> None:
+    def test_sanity(file_test_1: TestFile) -> None:
         run_pytester(
             PytesterTestCase(
                 test_files=TestFiles(

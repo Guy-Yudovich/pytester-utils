@@ -1,4 +1,4 @@
-from pytester_utils import FileFunction, PytesterTestCase, TestFiles, run_pytester
+from pytester_utils import PytesterTestCase, TestFile, TestFiles, run_pytester
 from tests.system.mocks import ComplexMockModel, SimpleMockModel
 from tests.system.utils import file_outer_conftest
 
@@ -17,8 +17,12 @@ def file_test_model_variable_injection() -> None:
         },
     )
 
-    @FileFunction.build().inject(
-        my_complex_model=my_complex_model,
+    @(
+        TestFile.build()
+        .inject(
+            my_complex_model=my_complex_model,
+        )
+        .finalize_from_raw()
     )
     def file_test_1(my_complex_model: ComplexMockModel) -> None:
         def test_sanity() -> None:

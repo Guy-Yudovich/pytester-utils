@@ -1,4 +1,4 @@
-from pytester_utils import FileFunction, PytesterTestCase, TestFiles, run_pytester
+from pytester_utils import PytesterTestCase, TestFile, TestFiles, run_pytester
 from tests.system.utils import file_outer_conftest
 
 
@@ -7,10 +7,14 @@ def file_test_simple_variable_injection() -> None:
     my_array_const = [1, b"2", "hello"]
     my_complex_array_const = [*my_array_const, my_array_const]
 
-    @FileFunction.build().inject(
-        my_const=my_const,
-        my_array_const=my_array_const,
-        my_complex_array_const=my_complex_array_const,
+    @(
+        TestFile.build()
+        .inject(
+            my_const=my_const,
+            my_array_const=my_array_const,
+            my_complex_array_const=my_complex_array_const,
+        )
+        .finalize_from_raw()
     )
     def file_test_1(
         my_const: str,
