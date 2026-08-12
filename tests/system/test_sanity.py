@@ -8,13 +8,7 @@ def file_test_pytester_utils_sanity() -> None:
             pass
 
     def test_sanity() -> None:
-        run_pytester(
-            PytesterTestCase(
-                test_files=TestFiles(
-                    test_files=[file_test_inside_pytester_utils],
-                ),
-            ),
-        )
+        run_pytester(PytesterTestCase(test_files=file_test_inside_pytester_utils))
 
 
 def test_sanity() -> None:
