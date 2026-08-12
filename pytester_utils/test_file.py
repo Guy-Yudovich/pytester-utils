@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 from types import FunctionType
 from typing import Any, Self, overload, override
 
@@ -30,14 +30,11 @@ class TestFile(ABC):
 
     @property
     @abstractmethod
-    def source_lines(self) -> str | Sequence[str]:
+    def source_lines(self) -> str:
         """
         Get the source lines (or variants thereof) of the test file.
 
         Multi-line strings are returned as a single string with newline characters.
-
-        If there are multiple variants of the test file, similar to parametrization,
-        return a sequence of source lines (one string per variant).
         """
 
     @classmethod

@@ -300,25 +300,15 @@ class TestFiles(BaseModel):
             test_file_name_prefix = f"{tests_dir_name}/"
             tests_dir_path = pytester.mkpydir(tests_dir_name)
 
-        multiple_source_lines_variants_not_implemented_error_msg = (
-            "Multiple variants of extra files are not yet supported. Please provide a single variant of the extra file."
-        )
-
         for extra_file_name, extra_file_function in self.all_non_test_files.items():
             file_function = TestFile.from_any(extra_file_function)
-            source_lines = file_function.source_lines
-            if isinstance(source_lines, Sequence) and not isinstance(source_lines, str):
-                raise NotImplementedError(multiple_source_lines_variants_not_implemented_error_msg)
-            pytester.makepyfile(**{extra_file_name: source_lines})
+            pytester.makepyfile(**{extra_file_name: file_function.source_lines})
 
         test_file_paths: list[str] = []
         for test_file_function in self.test_files:
             file_function = TestFile.from_any(test_file_function)
             test_file_name = f"{test_file_name_prefix}{file_function.metadata.name}"
-            source_lines = file_function.source_lines
-            if isinstance(source_lines, Sequence) and not isinstance(source_lines, str):
-                raise NotImplementedError(multiple_source_lines_variants_not_implemented_error_msg)
-            test_file_path = pytester.makepyfile(**{test_file_name: source_lines})
+            test_file_path = pytester.makepyfile(**{test_file_name: file_function.source_lines})
             test_path_str = str(test_file_path.absolute())
             test_file_paths.append(test_path_str)
 
