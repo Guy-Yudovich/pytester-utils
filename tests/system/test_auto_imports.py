@@ -1,14 +1,22 @@
 from unittest import mock  # IMPORTANT!
 
-from pytester_utils import FileFunction, PytesterOutcomes, PytesterTestCase, TestFiles, run_pytester
+from pytester_utils import (
+    FunctionTestFile,
+    PytesterOutcomes,
+    PytesterTestCase,
+    TestFileMetadata,
+    TestFiles,
+    run_pytester,
+)
 from tests.system.utils import file_outer_conftest
 
 
 def file_test_auto_imports() -> None:
     from pytester_utils import (  # noqa: PLC0415
-        FileFunction,
+        FunctionTestFile,
         PytesterOutcomes,
         PytesterTestCase,
+        TestFileMetadata,
         TestFiles,
         run_pytester,
     )
@@ -45,7 +53,11 @@ def file_test_auto_imports() -> None:
     def test_auto_imports_false() -> None:
         run_pytester(
             PytesterTestCase(
-                test_files=TestFiles(test_files=[FileFunction(func=file_test_2, auto_inject_imports=False)]),
+                test_files=TestFiles(
+                    test_files=[
+                        FunctionTestFile(func=file_test_2, metadata=TestFileMetadata(auto_inject_imports=False)),
+                    ],
+                ),
                 assert_outcomes=PytesterOutcomes(passed=1),
             ),
         )
@@ -56,7 +68,9 @@ def test_auto_imports() -> None:
         PytesterTestCase(
             test_files=TestFiles(
                 conftest=file_outer_conftest,
-                test_files=[FileFunction(func=file_test_auto_imports, auto_inject_imports=False)],
+                test_files=[
+                    FunctionTestFile(func=file_test_auto_imports, metadata=TestFileMetadata(auto_inject_imports=False)),
+                ],
             ),
             assert_outcomes=PytesterOutcomes(passed=2),
         ),

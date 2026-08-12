@@ -22,6 +22,14 @@ class ArgumentWithDefaultValueError(InvalidFileFunctionError):
         )
 
 
+class NotConvertibleToTestFileError(ValueError):
+    """Raised when a function cannot be converted into a `TestFile`."""
+
+    def __init__(self, func: Any) -> None:  # noqa: ANN401 - any-type
+        self.func = func
+        super().__init__(f"Cannot convert {func} into a TestFile.")
+
+
 class FixtureRequestNotAvailableError(ValueError):
     """Raised when the fixture request is not available at a desired stage."""
 

@@ -4,7 +4,7 @@ import re
 from abc import abstractmethod
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
-from typing import Any, Literal, Protocol, Self, overload
+from typing import Literal, Protocol, Self, overload
 
 import pytest
 from pydantic import (
@@ -17,7 +17,6 @@ from pydantic import (
     validate_call,
 )
 
-from pytester_utils._ast_utils import get_function_body_source_lines
 from pytester_utils._env_patching import patch_env
 from pytester_utils._plugin import (
     PYTESTER_RUN_METHOD_CLI_FLAG,
@@ -26,12 +25,7 @@ from pytester_utils._plugin import (
     get_request,
 )
 from pytester_utils.errors import DuplicateSpecialFilesError
-
-type RawFileFunction = Callable[..., Any]
-"""Raw Python function that can be converted into a Python file."""
-
-type AnyFileFunction = FileFunction | RawFileFunction
-"""Any function that can be converted into a Python file."""
+from pytester_utils.test_file import AnyTestFile, TestFile
 
 
 class _DefaultParams(BaseModel):
@@ -152,13 +146,6 @@ def _assert_pytester_result(
         raise
 
 
-def _resolve_file_function(file_function: AnyFileFunction) -> FileFunction:
-    if isinstance(file_function, FileFunction):
-        return file_function
-
-    return FileFunction(func=file_function)
-
-
 def _resolve_pytester_method(
     pytester: pytest.Pytester,
     pytester_run_method: PytesterRunMethod,
@@ -233,84 +220,22 @@ class OutputMatchPattern(BaseModel):
         )
 
 
-class _FileFunctionMetadata(BaseModel):
-    """
-    Builder class for the class `FileFunction`.
-
-    Finalize building by decorating a file function with an instance of this class.
-    """
-
-    model_config = ConfigDict(extra="forbid")
-
-    injected_variables: dict[str, Any] = Field(default_factory=dict)
-    auto_inject_imports: bool = True
-
-    def __call__(self, func: RawFileFunction) -> FileFunction:
-        return FileFunction(
-            func=func,
-            injected_variables=self.injected_variables,
-            auto_inject_imports=self.auto_inject_imports,
-        )
-
-    @overload
-    def inject(self, /, **variables_kwargs: Any) -> Self: ...
-
-    @overload
-    def inject(self, variables_dict: dict[str, Any], /) -> Self: ...
-
-    def inject(self, variables_dict: dict[str, Any] | None = None, /, **variables_kwargs: Any) -> Self:
-        """
-        Inject variables into the file function.
-
-        When generating a file based on a file function, a variable is injected only
-        if there is an argument in the file function's signature with the same name.
-        """
-        self.injected_variables.update(variables_dict or {})
-        self.injected_variables.update(variables_kwargs)
-        return self
-
-
-class FileFunction(_FileFunctionMetadata):
-    """
-    Container for attaching metadata to a function that can be converted into a Python file.
-
-    Can be initialized either via the `__init__`, or via the `FileFunction.build()` method.
-    For simplicity, it is advised to use the builder, as it can be used as a decorator.
-    """
-
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    func: RawFileFunction
-
-    __call__ = None
-
-    @classmethod
-    def build(cls) -> _FileFunctionMetadata:
-        """
-        Initialize a builder for the class `FileFunction`.
-
-        Finalize building by decorating a file function with an instance of the returned builder.
-        """
-        return _FileFunctionMetadata()
-
-
 class TestFiles(BaseModel):
     """Represents a collection of test files, extra files, and special files to be used in a pytester session."""
 
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    model_config = ConfigDict(extra="forbid", frozen=True, arbitrary_types_allowed=True)
 
-    conftest: AnyFileFunction | None = None
+    conftest: AnyTestFile | None = None
     """Optional `conftest.py` file to add alongside the test files."""
 
-    test_files: Sequence[AnyFileFunction]
+    test_files: Sequence[AnyTestFile]
     """Files containing test cases, to be run inside pytest session(s)."""
 
-    extra_files: Mapping[str, AnyFileFunction] = Field(default_factory=dict)
+    extra_files: Mapping[str, AnyTestFile] = Field(default_factory=dict)
     """Files without any test cases, useful for utilities."""
 
-    # Pytest tried to collect the class as a test class when imported
-    # by a test module. This variable tells pytest it doesn't contain
-    # tests even though it has the "Test" prefix in the name.
+    # Pytest tries to collect the class as a test class when imported by a test module.
+    # This variable tells pytest it doesn't contain tests even though it has the "Test" prefix in the name.
     __test__ = False
 
     @model_validator(mode="after")
@@ -330,7 +255,7 @@ class TestFiles(BaseModel):
 
     @computed_field
     @property
-    def special_files(self) -> dict[str, AnyFileFunction]:
+    def special_files(self) -> dict[str, AnyTestFile]:
         return {
             name: file
             for name, file in {
@@ -342,7 +267,7 @@ class TestFiles(BaseModel):
 
     @computed_field
     @property
-    def all_non_test_files(self) -> dict[str, AnyFileFunction]:
+    def all_non_test_files(self) -> dict[str, AnyTestFile]:
         return {
             **self.extra_files,
             **self.special_files,
@@ -375,31 +300,25 @@ class TestFiles(BaseModel):
             test_file_name_prefix = f"{tests_dir_name}/"
             tests_dir_path = pytester.mkpydir(tests_dir_name)
 
+        multiple_source_lines_variants_not_implemented_error_msg = (
+            "Multiple variants of extra files are not yet supported. Please provide a single variant of the extra file."
+        )
+
         for extra_file_name, extra_file_function in self.all_non_test_files.items():
-            file_function = _resolve_file_function(extra_file_function)
-            pytester.makepyfile(
-                **{
-                    extra_file_name: get_function_body_source_lines(
-                        file_function.func,
-                        file_function.injected_variables,
-                        file_function.auto_inject_imports,
-                    ),
-                },
-            )
+            file_function = TestFile.from_any(extra_file_function)
+            source_lines = file_function.source_lines
+            if isinstance(source_lines, Sequence) and not isinstance(source_lines, str):
+                raise NotImplementedError(multiple_source_lines_variants_not_implemented_error_msg)
+            pytester.makepyfile(**{extra_file_name: source_lines})
 
         test_file_paths: list[str] = []
         for test_file_function in self.test_files:
-            file_function = _resolve_file_function(test_file_function)
-            test_file_name = f"{test_file_name_prefix}{file_function.func.__name__}"  # ty: ignore[unresolved-attribute]
-            test_file_path = pytester.makepyfile(
-                **{
-                    test_file_name: get_function_body_source_lines(
-                        file_function.func,
-                        file_function.injected_variables,
-                        file_function.auto_inject_imports,
-                    ),
-                },
-            )
+            file_function = TestFile.from_any(test_file_function)
+            test_file_name = f"{test_file_name_prefix}{file_function.metadata.name}"
+            source_lines = file_function.source_lines
+            if isinstance(source_lines, Sequence) and not isinstance(source_lines, str):
+                raise NotImplementedError(multiple_source_lines_variants_not_implemented_error_msg)
+            test_file_path = pytester.makepyfile(**{test_file_name: source_lines})
             test_path_str = str(test_file_path.absolute())
             test_file_paths.append(test_path_str)
 
@@ -413,7 +332,7 @@ class PytesterTestCase(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    test_files: TestFiles | Sequence[AnyFileFunction] | AnyFileFunction
+    test_files: TestFiles | Sequence[AnyTestFile] | AnyTestFile
     """Files to be created in the pytester sessions."""
 
     pytest_args: list[str] = Field(default_factory=list)
@@ -497,15 +416,12 @@ def run_pytester(test_case: PytesterTestCase) -> pytest.RunResult:
         **test_case.env,
     }
 
-    if isinstance(test_case.test_files, Sequence):
-        test_files = TestFiles(test_files=test_case.test_files)
-    elif isinstance(test_case.test_files, (FileFunction, Callable)):
-        test_files = TestFiles(test_files=[test_case.test_files])
-    elif isinstance(test_case.test_files, TestFiles):
+    if isinstance(test_case.test_files, TestFiles):
         test_files = test_case.test_files
-    else:
-        msg = f"Unexpected test files type: {type(test_case.test_files)}"
-        raise TypeError(msg)
+    elif isinstance(test_case.test_files, Sequence):
+        test_files = TestFiles(test_files=test_case.test_files)
+    elif isinstance(test_case.test_files, (TestFile, Callable)):
+        test_files = TestFiles(test_files=[test_case.test_files])
 
     run_result = _run_pytester(
         config=request.config,
