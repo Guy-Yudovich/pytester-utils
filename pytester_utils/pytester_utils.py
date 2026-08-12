@@ -413,7 +413,7 @@ class PytesterTestCase(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    test_files: TestFiles
+    test_files: TestFiles | Sequence[AnyFileFunction] | AnyFileFunction
     """Files to be created in the pytester sessions."""
 
     pytest_args: list[str] = Field(default_factory=list)
@@ -497,11 +497,21 @@ def run_pytester(test_case: PytesterTestCase) -> pytest.RunResult:
         **test_case.env,
     }
 
+    if isinstance(test_case.test_files, Sequence):
+        test_files = TestFiles(test_files=test_case.test_files)
+    elif isinstance(test_case.test_files, (FileFunction, Callable)):
+        test_files = TestFiles(test_files=[test_case.test_files])
+    elif isinstance(test_case.test_files, TestFiles):
+        test_files = test_case.test_files
+    else:
+        msg = f"Unexpected test files type: {type(test_case.test_files)}"
+        raise TypeError(msg)
+
     run_result = _run_pytester(
         config=request.config,
         pytester=pytester,
         pytester_run_method=test_case.pytester_run_method,
-        test_files=test_case.test_files,
+        test_files=test_files,
         pytest_args=pytest_args,
         env=env,
         inherit_env=test_case.inherit_env,

@@ -39,14 +39,10 @@ jobs:
         run: uv sync --dev
 
       - name: ruff check
-        uses: astral-sh/ruff-action@v1
-        with:
-          args: check ${{ matrix.path }}
+        run: uv run ruff check ${{ matrix.path }}
 
       - name: ruff format
-        uses: astral-sh/ruff-action@v1
-        with:
-          args: format --diff ${{ matrix.path }}
+        run: uv run ruff format --diff ${{ matrix.path }}
 
       - name: ty check
         run: uv run ty check
