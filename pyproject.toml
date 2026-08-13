@@ -1,0 +1,121 @@
+[project]
+name = "pytester-utils"
+version = "1.0.0"
+description = "Powerful and ergonomic wrapper for pytester for your mental health."
+readme = "README.md"
+requires-python = ">=3.12"
+
+dependencies = ["pydantic~=2.13", "pytest~=9.1"]
+
+[dependency-groups]
+dev = [
+    "absolufy-imports~=0.3.1",
+    "pre-commit~=4.6",
+    "pytest-cov~=7.1",
+    "ruff~=0.15.20",
+    "ty~=0.0.56",
+    "uv~=0.11.26",
+]
+
+[project.entry-points.pytest11]
+pytester_utils = "pytester_utils._plugin"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["pytester_utils"]
+
+[tool.hatch.build.targets.sdist]
+packages = ["pytester_utils"]
+
+[tool.uv]
+cache-dir = "./.cache/uv"
+
+[tool.pytest.ini_options]
+cache_dir = "./.cache/pytest"
+addopts = "--cov=pytester_utils --cov-report=term --cov-report=xml --cov-branch"
+
+[tool.ruff]
+cache-dir = "./.cache/ruff"
+line-length = 120
+
+[tool.ruff.lint.per-file-ignores]
+"./tests/**/*.py" = [
+    "S101", # use of assert detected
+]
+"./pytester_utils/pytester_utils.py" = [
+    "S101", # use of assert detected
+]
+
+[tool.ruff.lint.flake8-annotations]
+allow-star-arg-any = true # Allow `*args: Any` and `**kwargs: Any`.
+
+[tool.ruff.lint]
+select = [
+    "A",     # Protects the Builtin Module
+    "ANN",   # Enforce Annotations Usage
+    "ARG",   # Unused Function Arguments
+    "ASYNC", # Async
+    "B",     # Bug Prevention
+    "COM",   # Comma Related Merge Conflict Prevention
+    "C4",    # Comprehensions
+    "C90",   # Complexity
+    "D",     # Docstring Conventions
+    "E",     # Code Style (Errors)
+    "EM",    # Error Messages
+    "ERA",   # Commented-Out Code
+    "F",     # Pyflakes
+    "FA",    # Future Annotations (i.e. `from __future__ import annotations`)
+    "FURB",  # Miscellaneous (mostly related to code conciseness)
+    "I",     # Import Order
+    "ICN",   # Implicit Conventions (e.g. `import pandas as pd` instead of `import pandas`)
+    "INP",   # Enforce __init__.py Presence in Packages
+    "ISC",   # Implicit String Concatenation
+    "LOG",   # Logging
+    "G",     # Logging Format (specifically for the `logging` module)
+    "N",     # Naming Conventions
+    "PD",    # Pandas
+    "PGH",   # Ignore Specific Rules Instead of Entire Linter (i.e. use specific rule codes in `# noqa` or `# type: ignore`)
+    "PIE",   # Miscellaneous (mostly related to code redundancy)
+    "PL",    # Pylint
+    "PT",    # Pytest
+    "PTH",   # Prefer Pathlib Over OS Module
+    "PYI",   # .pyi Stub Files
+    "Q",     # Quotes
+    "RET",   # Return Statement
+    "RSE",   # Exception Raising
+    "RUF",   # Ruff-Specific Rules
+    "S",     # Security
+    "SIM",   # Code Simplicity and Readability
+    "SLF",   # Forbids Private Member Access
+    "SLOT",  # Requires `__slots__` For Inheritance From Certain Classes
+    "TC",    # Type Checking
+    "TD",    # To-Do Comments
+    "TID",   # Tidy Imports
+    "T10",   # Forbid Debug-only Code (e.g. `breakpoint()`)
+    "T20",   # Prefer Logging Over Print Statements
+    "TRY",   # Exception Handling
+    "UP",    # Upgrade Checks and Deprecation Warnings
+    "W",     # Code Style (Warnings)
+]
+ignore = [
+    "D100",    # Missing docstring in public module
+    "D101",    # Missing docstring in public class
+    "D102",    # Missing docstring in public method
+    "D103",    # Missing docstring in public function
+    "D104",    # Missing docstring in public package
+    "D105",    # Missing docstring in magic method
+    "D106",    # Missing docstring in public nested class
+    "D107",    # Missing docstring in public init
+    "D203",    # Incompatible with D211
+    "D212",    # Incompatible with D213
+    "D413",    # Missing blank line at the end of a docstring,
+    "FURB110", # Fix may modify behavior
+    "RET504",  # Forbids assigning value to variable right before returning the variable, which is actually a common pattern in programming for ease of debugging.
+    "TC001",   # Move first-party imports to type-checking block - python 3.15+ supports lazy imports, making this rule unnecessary
+    "TC002",   # Move third-party imports to type-checking block - python 3.15+ supports lazy imports, making this rule unnecessary
+    "TC003",   # Move standard library imports to type-checking block - python 3.15+ supports lazy imports, making this rule unnecessary
+    "TD002",   # Missing todo author
+]
