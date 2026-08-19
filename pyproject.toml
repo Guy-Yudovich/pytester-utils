@@ -5,7 +5,7 @@ description = "Powerful and ergonomic wrapper for pytester for your mental healt
 readme = "README.md"
 requires-python = ">=3.12"
 
-dependencies = ["pydantic~=2.13", "pytest~=9.1"]
+dependencies = ["pydantic~=2.13", "pytest~=9.0"]
 
 [dependency-groups]
 dev = [
