@@ -1,6 +1,6 @@
 [project]
 name = "pytester-utils"
-version = "1.0.0"
+version = "1.0.1"
 description = "Powerful and ergonomic wrapper for pytester for your mental health."
 readme = "README.md"
 requires-python = ">=3.12"
