@@ -278,7 +278,7 @@ def function_for_get_function_body_source_lines_with_default(a: int = 1) -> int:
         ),
     ],
 )
-def test_get_function_body_source_lines(  # noqa: PLR0913
+def test_get_function_body_source_lines(  # noqa: PLR0913, PLR0917
     func: Callable[..., Any],
     variables: dict[str, Any],
     auto_inject_imports: bool,

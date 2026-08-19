@@ -49,7 +49,7 @@ def _parse_pytester_run_method(value: str | None, source: str) -> PytesterRunMet
 
     pytester_run_method = value.strip().lower()
     if pytester_run_method in PYTESTER_RUN_METHODS:
-        return cast("PytesterRunMethod", pytester_run_method)
+        return pytester_run_method
 
     msg = f"Invalid value for {source}: {value!r}. Valid choices are: {list(PYTESTER_RUN_METHODS)!r}"
     raise pytest.UsageError(msg)
