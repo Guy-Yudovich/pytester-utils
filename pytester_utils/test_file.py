@@ -2,22 +2,19 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable
+from pathlib import Path
 from types import FunctionType
 from typing import Any, Self, overload, override
 
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    Field,
-)
+from pydantic import BaseModel, ConfigDict, Field
 
-from pytester_utils._ast_utils import get_function_body_source_lines
+from pytester_utils._ast_utils import get_file_source_lines, get_function_body_source_lines
 from pytester_utils.errors import NotConvertibleToTestFileError
 
 type RawFileFunction = Callable[..., Any]
 """Raw Python function that can be converted into a Python file."""
 
-type AnyTestFile = TestFile | RawFileFunction
+type AnyTestFile = TestFile | RawFileFunction | Path
 """Any object that can be converted into a Python file."""
 
 
@@ -54,6 +51,8 @@ class TestFile(ABC):
             return obj
         if isinstance(obj, FunctionType):
             return FunctionTestFile(obj, TestFileMetadata(name=obj.__name__) if hasattr(obj, "__name__") else None)
+        if isinstance(obj, Path):
+            return ModuleTestFile(obj, TestFileMetadata(name=obj.name))
         raise NotConvertibleToTestFileError(obj)
 
     @overload
@@ -116,6 +115,35 @@ class FunctionTestFile(TestFile):
         )
 
 
+class ModuleTestFile(TestFile):
+    """
+    Container for attaching metadata to a Python module.
+
+    For simplicity, it is advised to use `TestFile.build().finalize_from_module()` instead.
+    """
+
+    def __init__(self, module: Path, metadata: TestFileMetadata | None = None) -> None:
+        self._module = module
+        self._metadata = metadata or TestFileMetadata(name=module.name)
+
+    @property
+    def module(self) -> Path:
+        return self._module
+
+    @property
+    @override
+    def metadata(self) -> TestFileMetadata:
+        return self._metadata
+
+    @property
+    @override
+    def source_lines(self) -> str:
+        return get_file_source_lines(
+            self._module,
+            self._metadata.injected_variables,
+        )
+
+
 class TestFileBuilder:
     """
     Builder class for the class `TestFile`.
@@ -140,6 +168,15 @@ class TestFileBuilder:
             return test_file
 
         return wrapper
+
+    def finalize_from_module(self, module: Path) -> TestFile:
+        """Finalize building by creating a ModuleTestFile from the given module."""
+        raw_metadata = self._raw_metadata.copy()
+        if "name" not in raw_metadata:
+            raw_metadata["name"] = module.name
+        metadata = TestFileMetadata.model_validate(raw_metadata)
+        test_file = ModuleTestFile(module, metadata)
+        return test_file
 
     def set_name(self, name: str) -> Self:
         """Set the name of the test file."""

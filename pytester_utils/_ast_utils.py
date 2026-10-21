@@ -5,6 +5,7 @@ import inspect
 import textwrap
 import warnings
 from collections.abc import Callable, Mapping
+from pathlib import Path
 from typing import Any, cast
 
 from pytester_utils.errors import (
@@ -127,6 +128,36 @@ def get_function_body_source_lines[**P, R](
     function_contents = "\n".join(
         [
             *imports,
+            *variable_injection_lines,
+            function_contents,
+        ],
+    )
+    return function_contents
+
+
+def get_file_source_lines(
+    file: Path,
+    variables: Mapping[str, Any],
+) -> str:
+    """
+    Get the source lines for a file with optional injected imports and variables.
+
+    Args:
+        file (Path): Path to the file to extract the source lines from.
+        variables (Mapping[str, Any]): Mapping of variables to inject to the top of the result.
+
+    Returns:
+        str: Source lines of the given function, with the optional modifications.
+    """
+    function_contents = file.read_text()
+    function_contents = textwrap.dedent(function_contents)
+
+    variable_injection_lines = _create_variable_injection_lines(variables)
+    if len(variable_injection_lines) > 0:
+        variable_injection_lines.append("")
+
+    function_contents = "\n".join(
+        [
             *variable_injection_lines,
             function_contents,
         ],
